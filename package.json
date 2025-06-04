@@ -1,0 +1,15 @@
+{
+  "name": "frakiry-plugin",
+  "version": "0.1.0",
+  "description": "Example Obsidian plugin created by ChatGPT",
+  "scripts": {
+    "build": "tsc",
+    "dev": "esbuild src/main.ts --bundle --outfile dist/main.js --format=cjs --watch",
+    "test": "echo \"No tests specified\""
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "esbuild": "^0.17.19",
+    "@types/node": "^20.0.0"
+  }
+}
