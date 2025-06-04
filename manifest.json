@@ -1,0 +1,10 @@
+{
+  "id": "frakiry-plugin",
+  "name": "Frakiry Plugin",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "A simple Obsidian plugin written in TypeScript.",
+  "author": "Frakiry",
+  "authorUrl": "",
+  "main": "dist/main.js"
+}
