@@ -13,9 +13,8 @@ app.use(express.json({ limit: "10mb" }));
 const PORT = process.env.PORT || 4000;
 
 // OpenAI client (pour transcription + conseils)
-const openai = new OpenAIApi(
-  new Configuration({ apiKey: process.env.OPENAI_API_KEY })
-);
+const openai = new OpenAIApi({ apiKey: process.env.OPENAI_API_KEY });
+
 
 // WebSocket serveur pour pousser le feedback en live
 const wss = new WebSocketServer({ noServer: true });
