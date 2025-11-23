@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const { Configuration, OpenAIApi } = require("openai");
-
+const { OpenAI } = require("openai");
+const { WebSocketServer } = require("ws");
 
 dotenv.config();
 
@@ -13,8 +13,9 @@ app.use(express.json({ limit: "10mb" }));
 const PORT = process.env.PORT || 4000;
 
 // OpenAI client (pour transcription + conseils)
-const openai = new OpenAIApi({ apiKey: process.env.OPENAI_API_KEY });
-
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // WebSocket serveur pour pousser le feedback en live
 const wss = new WebSocketServer({ noServer: true });
@@ -45,10 +46,9 @@ app.post("/api/audio-chunk", async (req, res) => {
   try {
     const { sessionId, role, audioBase64 } = req.body; // role = "seller" | "client"
 
-    // 1) Décoder l'audio et envoyer à l'API de transcription (simplifié, pseudo-code)
+    // 1) Décoder l'audio et envoyer à l'API de transcription (optionnel ici)
     // const audioBuffer = Buffer.from(audioBase64, "base64");
     // const transcript = await callWhisper(audioBuffer);
-
     const transcript = "[transcription simulée pour le POC]";
 
     // 2) Générer le conseil IA à partir du transcript + rôle + contexte
@@ -62,13 +62,13 @@ Donne un conseil ACTIONNABLE et concis au commercial (en français),
 basé sur les principes méthodo vus en formation. 
 Réponds en 1 à 2 phrases maximum.`;
 
-    const completion = await openai.createChatCompletion({
-      model: "gpt-4o-mini",
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // ou "gpt-3.5-turbo" si tu n'as pas accès à gpt-4o
       messages: [{ role: "user", content: prompt }],
       temperature: 0.4,
     });
 
-    const advice = completion.data.choices[0].message.content;
+    const advice = completion.choices[0].message.content;
 
     // 3) Broadcast du conseil aux clients WebSocket connectés sur cette session
     const payload = JSON.stringify({
