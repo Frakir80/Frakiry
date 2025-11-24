@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const { OpenAI } = require("openai");
+const OpenAI = require("openai"); // ← correction ici
 const { WebSocketServer } = require("ws");
 
 dotenv.config();
@@ -16,6 +16,7 @@ const PORT = process.env.PORT || 4000;
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
 
 // WebSocket serveur pour pousser le feedback en live
 const wss = new WebSocketServer({ noServer: true });
