@@ -46,16 +46,14 @@ server.on("upgrade", (req, socket, head) => {
 app.post("/api/audio-chunk", async (req, res) => {
   try {
     const { sessionId, role, audioBase64 } = req.body; // role = "seller" | "client"
- 
-    // Ajoute ici un log pour vérifier ce que tu reçois
+
+    // Log pour vérifier ce que tu reçois
     console.log("audioBase64 reçu. Taille :", audioBase64 ? audioBase64.length : 0);
-    
-    // 1) Décoder l'audio et envoyer à l'API de transcription (optionnel ici)
-    // const audioBuffer = Buffer.from(audioBase64, "base64");
-    // const transcript = await callWhisper(audioBuffer);
+
+    // Transcription simulée pour le POC
     const transcript = "[transcription simulée pour le POC]";
 
-    // 2) Générer le conseil IA à partir du transcript + rôle + contexte
+    // Construction du prompt IA
     const prompt = `
 Tu es un coach de vente. 
 Tu écoutes en temps réel une discussion entre un client et un commercial.
@@ -64,13 +62,27 @@ Dernier extrait: "${transcript}".
 
 Donne un conseil ACTIONNABLE et concis au commercial (en français), 
 basé sur les principes méthodo vus en formation. 
-Réponds en 1 à 2 phrases maximum.`;
+Réponds en 1 à 2 phrases maximum.
+    `;
 
+    // Appel à OpenAI
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // ou "gpt-3.5-turbo" si tu n'as pas accès à gpt-4o
+      model: "gpt-4o-mini", // ou "gpt-3.5-turbo" si besoin
       messages: [{ role: "user", content: prompt }],
       temperature: 0.4,
     });
+
+    // Envoi de la réponse au frontend
+    res.json({
+      transcript,
+      advice: completion.choices?.[0]?.message?.content || "Pas de conseil généré"
+    });
+  } catch(err) {
+    console.error("Erreur endpoint audio-chunk :", err);
+    res.status(500).json({ error: "processing_error" });
+  }
+});
+
 
     const advice = completion.choices[0].message.content;
 
