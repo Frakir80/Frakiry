@@ -46,7 +46,10 @@ server.on("upgrade", (req, socket, head) => {
 app.post("/api/audio-chunk", async (req, res) => {
   try {
     const { sessionId, role, audioBase64 } = req.body; // role = "seller" | "client"
-
+ 
+    // Ajoute ici un log pour vérifier ce que tu reçois
+    console.log("audioBase64 reçu. Taille :", audioBase64 ? audioBase64.length : 0);
+    
     // 1) Décoder l'audio et envoyer à l'API de transcription (optionnel ici)
     // const audioBuffer = Buffer.from(audioBase64, "base64");
     // const transcript = await callWhisper(audioBuffer);
