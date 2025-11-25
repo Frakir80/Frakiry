@@ -69,7 +69,7 @@ Réponds en 1 à 2 phrases maximum.
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini", // ou "gpt-3.5-turbo" si besoin
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
+      temperature: 0.4
     });
 
     // Envoi de la réponse au frontend
