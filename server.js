@@ -43,44 +43,9 @@ server.on("upgrade", (req, socket, head) => {
 });
 
 // Endpoint pour recevoir des chunks audio (PCM/opus en base64 par ex.)
-app.post("/api/audio-chunk", async (req, res) => {
-  try {
-    const { sessionId, role, audioBase64 } = req.body; // role = "seller" | "client"
-
-    // Log pour vérifier ce que tu reçois
-    console.log("audioBase64 reçu. Taille :", audioBase64 ? audioBase64.length : 0);
-
-    // Transcription simulée pour le POC
-    const transcript = "[transcription simulée pour le POC]";
-
-    // Construction du prompt IA
-    const prompt = `
-Tu es un coach de vente. 
-Tu écoutes en temps réel une discussion entre un client et un commercial.
-Rôle qui vient de parler: ${role}.
-Dernier extrait: "${transcript}".
-
-Donne un conseil ACTIONNABLE et concis au commercial (en français), 
-basé sur les principes méthodo vus en formation. 
-Réponds en 1 à 2 phrases maximum.
-    `;
-
-    // Appel à OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // ou "gpt-3.5-turbo" si besoin
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4
-    });
-
-    // Envoi de la réponse au frontend
-    res.json({
-      transcript,
-      advice: completion.choices?.[0]?.message?.content || "Pas de conseil généré"
-    });
-  } catch(err) {
-    console.error("Erreur endpoint audio-chunk :", err);
-    res.status(500).json({ error: "processing_error" });
-  }
+app.post("/api/audio-chunk", (req, res) => {
+  console.log("Endpoint /api/audio-chunk appelé"); // Ceci doit apparaître dans les logs Railway à chaque appel
+  res.json({ transcript: "OK test", advice: "Conseil test" });
 });
 
 
