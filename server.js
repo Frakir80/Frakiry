@@ -48,7 +48,23 @@ app.post("/api/audio-chunk", async (req, res) => {
     console.log("audioBase64 reçu. Taille :", audioBase64 ? audioBase64.length : 0);
 
     // Transcription simulée pour le test (remplace plus tard par la vraie transcription)
-    const transcript = "[transcription simulée pour le POC]";
+  // Conversion du chunk base64 en Buffer audio
+  const audioBuffer = Buffer.from(audioBase64, "base64");
+
+  // Appel à OpenAI Whisper pour la transcription
+const transcriptionResponse = await openai.audio.transcriptions.create({
+  file: {
+    buffer: audioBuffer,
+    name: "chunk.wav",
+    type: "audio/wav"
+  },
+  model: "gpt-4o-transcribe",
+  response_format: "text"
+});
+
+
+  const transcript = transcriptionResponse;
+
 
     // Construction du prompt IA
     const prompt = `
