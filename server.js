@@ -44,9 +44,10 @@ server.on("upgrade", (req, socket, head) => {
 
 // Endpoint pour recevoir des chunks audio (PCM/opus en base64 par ex.)
 app.post("/api/audio-chunk", (req, res) => {
-  console.log("Endpoint /api/audio-chunk appelé"); // Ceci doit apparaître dans les logs Railway à chaque appel
+  console.log("Endpoint /api/audio-chunk appelé"); // Ceci doit apparaître dans Railway
   res.json({ transcript: "OK test", advice: "Conseil test" });
 });
+
 
 
     const advice = completion.choices[0].message.content;
