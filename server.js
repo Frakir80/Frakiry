@@ -3,6 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
 const { WebSocketServer, WebSocket } = require("ws");
+const path = require("path");
+const https = require("https");
 
 dotenv.config();
 
@@ -11,6 +13,9 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 const PORT = process.env.PORT || 4000;
+
+// Serve static files (geo-stats UI)
+app.use(express.static(path.join(__dirname, "public")));
 
 // --------------------------
 //   1. WebSocket interne
@@ -146,11 +151,84 @@ app.post("/api/audio-chunk", async (req, res) => {
 });
 
 // --------------------------
-//   5. Upgrade WebSocket interne
+//   5. Geo-Stats API (Somme)
+// --------------------------
+
+// Fetch JSON from a URL using the built-in https module
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let raw = "";
+      res.on("data", (chunk) => (raw += chunk));
+      res.on("end", () => {
+        try { resolve(JSON.parse(raw)); }
+        catch (e) { reject(new Error("JSON parse error: " + e.message)); }
+      });
+    }).on("error", reject);
+  });
+}
+
+// Deterministic pseudo-random from an integer seed (consistent values on each call)
+function seededRand(seed) {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
+// GET /api/geo-stats/somme
+// Returns GeoJSON FeatureCollection of Somme communes enriched with
+// simulated elderly-population statistics (60+, 75+, 85+).
+app.get("/api/geo-stats/somme", async (req, res) => {
+  try {
+    const url =
+      "https://geo.api.gouv.fr/departements/80/communes" +
+      "?geometry=contour&format=geojson&fields=code,nom,population,codesPostaux";
+
+    const geojson = await fetchJson(url);
+
+    const features = geojson.features.map((feature) => {
+      const codeNum = parseInt(feature.properties.code, 10) || 0;
+      const pop     = feature.properties.population || 400;
+
+      // Rural communes (small population) tend to have older populations
+      const urbanFactor = Math.min(1, pop / 20000);
+      const baseRate    = 0.28 - urbanFactor * 0.13; // 28 % rural → 15 % urban
+
+      const r1 = seededRand(codeNum * 13);
+      const r2 = seededRand(codeNum * 7);
+      const r3 = seededRand(codeNum * 19);
+
+      const pct60 = Math.max(0.10, Math.min(0.42, baseRate + (r1 - 0.5) * 0.10));
+      const pct75 = pct60 * (0.40 + r2 * 0.08);
+      const pct85 = pct75 * (0.30 + r3 * 0.10);
+
+      return {
+        ...feature,
+        properties: {
+          ...feature.properties,
+          pct60Plus: +(pct60 * 100).toFixed(1),
+          pct75Plus: +(pct75 * 100).toFixed(1),
+          pct85Plus: +(pct85 * 100).toFixed(1),
+          nb60Plus:  Math.round(pop * pct60),
+          nb75Plus:  Math.round(pop * pct75),
+          nb85Plus:  Math.round(pop * pct85),
+        },
+      };
+    });
+
+    res.json({ type: "FeatureCollection", features });
+  } catch (err) {
+    console.error("[geo-stats]", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --------------------------
+//   6. Upgrade WebSocket interne
 // --------------------------
 
 const server = app.listen(PORT, () => {
-  console.log("Server listening on port", PORT);
+  console.log(`Server listening on port ${PORT}`);
+  console.log(`GéoStats UI → http://localhost:${PORT}/geo-stats.html`);
 });
 
 server.on("upgrade", (req, socket, head) => {

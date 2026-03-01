@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GéoStats – Population âgée · Somme (80)</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <style>
+    /* ── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #1565C0;
+      --blue-dark:  #0D47A1;
+      --blue-light: #E3F2FD;
+      --bg:         #EFF3F8;
+      --card:       #FFFFFF;
+      --border:     #CFD8DC;
+      --text-dim:   #546E7A;
+      --header-h:   58px;
+      --sidebar-w:  370px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      background: var(--bg);
+      color: #1e1e2e;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, #1976D2 100%);
+      color: white;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      z-index: 1001;
+      flex-shrink: 0;
+    }
+
+    .header-brand { display: flex; flex-direction: column; }
+    .header-brand h1 { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+    .header-brand .sub { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+    .header-controls {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-controls label { font-size: 12px; opacity: 0.85; white-space: nowrap; }
+
+    .header-controls select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      backdrop-filter: blur(4px);
+    }
+    .header-controls select option { color: #333; background: white; }
+
+    .btn-export {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 6px;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-export:hover { background: rgba(255,255,255,0.35); }
+
+    /* ── Main layout ────────────────────────────────────────── */
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    #map { flex: 1; z-index: 1; }
+
+    /* ── Sidebar ────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      border-left: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--blue);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--bg);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Department summary grid ───────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-box {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .stat-box .val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--blue-dark);
+      line-height: 1;
+    }
+
+    .stat-box .lbl {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    .stat-box .sub-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #E53935;
+      margin-top: 2px;
+    }
+
+    /* ── Selected commune card ─────────────────────────────── */
+    #sel-card { display: none; }
+
+    .com-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .com-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: var(--blue);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .com-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.2;
+    }
+
+    .com-pop {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    .age-row {
+      margin-bottom: 8px;
+    }
+
+    .age-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .age-label { font-size: 13px; color: #444; }
+
+    .age-values { display: flex; align-items: baseline; gap: 6px; }
+
+    .age-nb { font-weight: 700; font-size: 13px; }
+
+    .age-pct {
+      font-size: 12px;
+      font-weight: 600;
+      color: #E53935;
+      background: #FFEBEE;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #FEB24C, #E31A1C);
+      transition: width 0.5s ease;
+    }
+
+    /* ── Top communes table ────────────────────────────────── */
+    .top-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .top-table th {
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-dim);
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .top-table th:last-child { text-align: right; }
+    .top-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .top-table td:last-child { text-align: right; font-weight: 600; }
+    .top-table tr:last-child td { border-bottom: none; }
+    .top-table tr:hover td { background: var(--blue-light); cursor: pointer; }
+    .rank-dot {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 18px;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      margin-right: 6px;
+      background: var(--blue);
+    }
+
+    /* ── Chart ─────────────────────────────────────────────── */
+    .chart-wrap { position: relative; height: 220px; }
+
+    /* ── Source note ───────────────────────────────────────── */
+    .source-note { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
+
+    /* ── Loading overlay ───────────────────────────────────── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(240, 244, 248, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      gap: 14px;
+    }
+
+    .spinner {
+      width: 44px; height: 44px;
+      border: 5px solid #cdd5e0;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text { font-size: 14px; color: #555; }
+
+    /* ── Leaflet tooltip ───────────────────────────────────── */
+    .leaflet-tooltip {
+      background: rgba(10,18,38,0.88);
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 14px;
+      font-size: 13px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    }
+    .tt-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .tt-line { opacity: 0.9; }
+
+    /* ── Leaflet legend ────────────────────────────────────── */
+    .geo-legend {
+      background: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.18);
+      font-size: 12px;
+      line-height: 1;
+    }
+    .geo-legend .leg-title { font-weight: 700; margin-bottom: 7px; color: #333; }
+    .leg-row { display: flex; align-items: center; gap: 7px; margin: 4px 0; }
+    .leg-swatch { width: 18px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading overlay ─────────────────────────────────────────── -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Chargement des données géographiques…</div>
+</div>
+
+<!-- ── Header ──────────────────────────────────────────────────── -->
+<header>
+  <div class="header-brand">
+    <h1>🗺️ GéoStats – Population âgée · Somme (80)</h1>
+    <div class="sub">Source : geo.api.gouv.fr / INSEE · Données simulées à titre de démonstration</div>
+  </div>
+  <div class="header-controls">
+    <label for="indicator">Indicateur :</label>
+    <select id="indicator">
+      <option value="pct60Plus">60 ans et plus</option>
+      <option value="pct75Plus">75 ans et plus</option>
+      <option value="pct85Plus">85 ans et plus</option>
+    </select>
+    <button class="btn-export" onclick="exportCSV()">⬇ Exporter CSV</button>
+  </div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────────────── -->
+<div class="main">
+  <div id="map"></div>
+
+  <div class="sidebar">
+
+    <!-- Résumé département -->
+    <div class="card">
+      <div class="card-title">📊 Département de la Somme</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="val" id="d-total">–</div>
+          <div class="lbl">Habitants<br>total</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="d-60">–</div>
+          <div class="lbl">60 ans<br>et plus</div>
+          <div class="sub-lbl" id="d-60p">–</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="d-75">–</div>
+          <div class="lbl">75 ans<br>et plus</div>
+          <div class="sub-lbl" id="d-75p">–</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commune sélectionnée -->
+    <div class="card" id="sel-card">
+      <div class="card-title">📍 Commune sélectionnée</div>
+      <div class="com-header">
+        <span class="com-badge">INSEE</span>
+        <div class="com-name" id="sel-name">–</div>
+      </div>
+      <div class="com-pop" id="sel-pop"></div>
+
+      <div class="age-row">
+        <div class="age-row-top">
+          <span class="age-label">60 ans et plus</span>
+          <div class="age-values">
+            <span class="age-nb" id="sel-60nb">–</span>
+            <span class="age-pct" id="sel-60pct">–</span>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-60" style="width:0%"></div></div>
+      </div>
+
+      <div class="age-row">
+        <div class="age-row-top">
+          <span class="age-label">75 ans et plus</span>
+          <div class="age-values">
+            <span class="age-nb" id="sel-75nb">–</span>
+            <span class="age-pct" id="sel-75pct">–</span>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-75" style="width:0%"></div></div>
+      </div>
+
+      <div class="age-row">
+        <div class="age-row-top">
+          <span class="age-label">85 ans et plus</span>
+          <div class="age-values">
+            <span class="age-nb" id="sel-85nb">–</span>
+            <span class="age-pct" id="sel-85pct">–</span>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-85" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Top 10 -->
+    <div class="card">
+      <div class="card-title" id="top-title">🏆 Top 10 – communes les plus âgées</div>
+      <table class="top-table" id="top-table">
+        <thead>
+          <tr>
+            <th>Commune</th>
+            <th>Population</th>
+            <th>Part âgée</th>
+          </tr>
+        </thead>
+        <tbody id="top-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Graphique barres -->
+    <div class="card">
+      <div class="card-title" id="chart-title">📈 Répartition – Top 10</div>
+      <div class="chart-wrap">
+        <canvas id="myChart"></canvas>
+      </div>
+      <div class="source-note">* Statistiques simulées à des fins de démonstration (données réelles via API INSEE)</div>
+    </div>
+
+  </div><!-- /sidebar -->
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────────────── -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// ────────────────────────────────────────────────────────────────
+//  Color scale  (light yellow → dark red)
+// ────────────────────────────────────────────────────────────────
+const COLOR_PALETTE = ['#FFEDA0','#FED976','#FEB24C','#FD8D3C','#FC4E2A','#E31A1C','#800026'];
+
+const COLOR_BREAKS = {
+  pct60Plus: [14, 18, 22, 25, 28, 32],
+  pct75Plus: [5,  7,  9,  11, 13, 16],
+  pct85Plus: [2,  3,  4,  5,  6,  8 ],
+};
+
+const INDICATOR_LABEL = {
+  pct60Plus: '60 ans et +',
+  pct75Plus: '75 ans et +',
+  pct85Plus: '85 ans et +',
+};
+
+function getColor(val, ind) {
+  const b = COLOR_BREAKS[ind];
+  for (let i = 0; i < b.length; i++) if (val < b[i]) return COLOR_PALETTE[i];
+  return COLOR_PALETTE[COLOR_PALETTE.length - 1];
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Formatting helpers
+// ────────────────────────────────────────────────────────────────
+const toFr   = n  => (n ?? 0).toLocaleString('fr-FR');
+const toPct  = p  => (p ?? 0).toFixed(1) + ' %';
+const toK    = n  => n >= 1000 ? (n / 1000).toFixed(0) + 'k' : String(n);
+
+// ────────────────────────────────────────────────────────────────
+//  Leaflet map
+// ────────────────────────────────────────────────────────────────
+const map = L.map('map', { center: [49.9, 2.35], zoom: 9 });
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom: 18,
+}).addTo(map);
+
+// ────────────────────────────────────────────────────────────────
+//  State
+// ────────────────────────────────────────────────────────────────
+let geoLayer      = null;
+let allFeatures   = [];
+let currentInd    = 'pct60Plus';
+let selLayer      = null;
+let myChart       = null;
+let legendControl = null;
+let layerByCode   = {};  // code → Leaflet layer (for click from table)
+
+// ────────────────────────────────────────────────────────────────
+//  Style
+// ────────────────────────────────────────────────────────────────
+function featureStyle(feature) {
+  return {
+    fillColor:   getColor(feature.properties[currentInd] || 0, currentInd),
+    fillOpacity: 0.80,
+    weight:      0.7,
+    color:       'white',
+    opacity:     0.9,
+  };
+}
+
+// ────────────────────────────────────────────────────────────────
+//  On each feature
+// ────────────────────────────────────────────────────────────────
+function onEachFeature(feature, layer) {
+  const p = feature.properties;
+  layerByCode[p.code] = layer;
+
+  layer.on({
+    mouseover(e) {
+      e.target.setStyle({ weight: 2.5, color: '#222', fillOpacity: 0.95 });
+      e.target.bringToFront();
+      layer.bindTooltip(`
+        <div class="tt-name">${p.nom}</div>
+        <div class="tt-line">${INDICATOR_LABEL[currentInd]} : <strong>${toPct(p[currentInd])}</strong></div>
+        <div class="tt-line">Population : ${toFr(p.population)}</div>
+      `, { sticky: true }).openTooltip();
+    },
+    mouseout(e) {
+      if (selLayer !== e.target) geoLayer.resetStyle(e.target);
+      layer.closeTooltip();
+    },
+    click(e) {
+      selectFeature(feature, e.target);
+      map.fitBounds(e.target.getBounds(), { padding: [30, 30] });
+    },
+  });
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Select a commune (sidebar + highlight)
+// ────────────────────────────────────────────────────────────────
+function selectFeature(feature, layer) {
+  if (selLayer && selLayer !== layer) geoLayer.resetStyle(selLayer);
+  selLayer = layer;
+  layer.setStyle({ weight: 3, color: '#0D47A1', fillOpacity: 0.95 });
+
+  const p = feature.properties;
+  document.getElementById('sel-card').style.display = 'block';
+  document.getElementById('sel-name').textContent   = p.nom;
+  document.getElementById('sel-pop').textContent    = `Population : ${toFr(p.population)} hab.  ·  Code INSEE : ${p.code}`;
+
+  document.getElementById('sel-60nb').textContent   = toFr(p.nb60Plus);
+  document.getElementById('sel-60pct').textContent  = toPct(p.pct60Plus);
+  document.getElementById('sel-75nb').textContent   = toFr(p.nb75Plus);
+  document.getElementById('sel-75pct').textContent  = toPct(p.pct75Plus);
+  document.getElementById('sel-85nb').textContent   = toFr(p.nb85Plus);
+  document.getElementById('sel-85pct').textContent  = toPct(p.pct85Plus);
+
+  document.getElementById('bar-60').style.width = Math.min(100, (p.pct60Plus / 42) * 100) + '%';
+  document.getElementById('bar-75').style.width = Math.min(100, (p.pct75Plus / 20) * 100) + '%';
+  document.getElementById('bar-85').style.width = Math.min(100, (p.pct85Plus / 10) * 100) + '%';
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Department summary
+// ────────────────────────────────────────────────────────────────
+function updateDeptSummary(features) {
+  let totPop = 0, tot60 = 0, tot75 = 0;
+  features.forEach(f => {
+    totPop += f.properties.population || 0;
+    tot60  += f.properties.nb60Plus   || 0;
+    tot75  += f.properties.nb75Plus   || 0;
+  });
+
+  document.getElementById('d-total').textContent = toK(totPop);
+  document.getElementById('d-60').textContent    = toK(tot60);
+  document.getElementById('d-60p').textContent   = totPop ? toPct(tot60 / totPop * 100) : '–';
+  document.getElementById('d-75').textContent    = toK(tot75);
+  document.getElementById('d-75p').textContent   = totPop ? toPct(tot75 / totPop * 100) : '–';
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Top-10 table
+// ────────────────────────────────────────────────────────────────
+function updateTopTable(features, ind) {
+  const sorted = [...features]
+    .filter(f => f.properties.population > 100)
+    .sort((a, b) => b.properties[ind] - a.properties[ind])
+    .slice(0, 10);
+
+  const tbody = document.getElementById('top-tbody');
+  tbody.innerHTML = '';
+  sorted.forEach((f, i) => {
+    const p   = f.properties;
+    const tr  = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="rank-dot" style="background:${getColor(p[ind], ind)}">${i + 1}</span>${p.nom}</td>
+      <td>${toFr(p.population)}</td>
+      <td>${toPct(p[ind])}</td>
+    `;
+    tr.addEventListener('click', () => {
+      const layer = layerByCode[p.code];
+      if (layer) {
+        selectFeature(f, layer);
+        map.fitBounds(layer.getBounds(), { padding: [30, 30] });
+      }
+    });
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('top-title').textContent =
+    `🏆 Top 10 – communes les plus âgées (${INDICATOR_LABEL[ind]})`;
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Chart.js bar chart
+// ────────────────────────────────────────────────────────────────
+function updateChart(features, ind) {
+  const sorted = [...features]
+    .filter(f => f.properties.population > 100)
+    .sort((a, b) => b.properties[ind] - a.properties[ind])
+    .slice(0, 10);
+
+  const labels = sorted.map(f => f.properties.nom);
+  const data   = sorted.map(f => f.properties[ind]);
+  const colors = sorted.map(f => getColor(f.properties[ind], ind));
+
+  document.getElementById('chart-title').textContent =
+    `📈 Répartition – Top 10 (${INDICATOR_LABEL[ind]})`;
+
+  if (myChart) {
+    myChart.data.labels                       = labels;
+    myChart.data.datasets[0].data            = data;
+    myChart.data.datasets[0].backgroundColor = colors;
+    myChart.update();
+    return;
+  }
+
+  myChart = new Chart(document.getElementById('myChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderWidth:     0,
+        borderRadius:    4,
+      }],
+    },
+    options: {
+      indexAxis:   'y',
+      responsive:  true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend:  { display: false },
+        tooltip: { callbacks: { label: ctx => '  ' + ctx.raw.toFixed(1) + ' %' } },
+      },
+      scales: {
+        x: {
+          grid:  { color: '#f0f0f0' },
+          ticks: { callback: v => v + ' %', font: { size: 11 } },
+        },
+        y: {
+          ticks: { font: { size: 11 } },
+          grid:  { display: false },
+        },
+      },
+    },
+  });
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Legend
+// ────────────────────────────────────────────────────────────────
+function refreshLegend(ind) {
+  if (legendControl) legendControl.remove();
+  legendControl = L.control({ position: 'bottomleft' });
+  legendControl.onAdd = () => {
+    const div    = L.DomUtil.create('div', 'geo-legend');
+    const breaks = COLOR_BREAKS[ind];
+    div.innerHTML = `<div class="leg-title">${INDICATOR_LABEL[ind]}</div>`;
+    COLOR_PALETTE.forEach((color, i) => {
+      const label = i === 0
+        ? `< ${breaks[0]} %`
+        : i < breaks.length
+          ? `${breaks[i - 1]} – ${breaks[i]} %`
+          : `> ${breaks[breaks.length - 1]} %`;
+      div.innerHTML += `
+        <div class="leg-row">
+          <div class="leg-swatch" style="background:${color}"></div>
+          <span>${label}</span>
+        </div>`;
+    });
+    return div;
+  };
+  legendControl.addTo(map);
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Update map colors when indicator changes
+// ────────────────────────────────────────────────────────────────
+function redrawMap() {
+  if (geoLayer) geoLayer.setStyle(featureStyle);
+  if (selLayer) selLayer.setStyle({ weight: 3, color: '#0D47A1', fillOpacity: 0.95 });
+  refreshLegend(currentInd);
+  updateTopTable(allFeatures, currentInd);
+  updateChart(allFeatures, currentInd);
+}
+
+document.getElementById('indicator').addEventListener('change', e => {
+  currentInd = e.target.value;
+  redrawMap();
+});
+
+// ────────────────────────────────────────────────────────────────
+//  CSV export
+// ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!allFeatures.length) return;
+  const rows = [
+    ['Code INSEE', 'Commune', 'Population', 'Nb 60+', '% 60+', 'Nb 75+', '% 75+', 'Nb 85+', '% 85+'],
+    ...allFeatures.map(f => {
+      const p = f.properties;
+      return [p.code, p.nom, p.population, p.nb60Plus, p.pct60Plus, p.nb75Plus, p.pct75Plus, p.nb85Plus, p.pct85Plus];
+    }),
+  ];
+  const csv  = rows.map(r => r.join(';')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'geostats-somme.csv' });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ────────────────────────────────────────────────────────────────
+//  Load data from backend
+// ────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const resp = await fetch('/api/geo-stats/somme');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const geojson = await resp.json();
+    if (geojson.error) throw new Error(geojson.error);
+
+    allFeatures = geojson.features;
+
+    geoLayer = L.geoJSON(geojson, {
+      style:          featureStyle,
+      onEachFeature:  onEachFeature,
+    }).addTo(map);
+
+    map.fitBounds(geoLayer.getBounds(), { padding: [10, 10] });
+
+    updateDeptSummary(allFeatures);
+    updateTopTable(allFeatures, currentInd);
+    updateChart(allFeatures, currentInd);
+    refreshLegend(currentInd);
+
+  } catch (err) {
+    console.error('[GeoStats]', err);
+    document.getElementById('loading').innerHTML = `
+      <div style="color:#c62828;text-align:center;padding:24px">
+        <div style="font-size:40px">⚠️</div>
+        <p style="font-size:16px;margin-top:12px">Erreur de chargement</p>
+        <p style="font-size:13px;margin-top:8px;color:#666">${err.message}</p>
+        <button onclick="location.reload()" style="margin-top:18px;padding:8px 24px;border:none;background:#1565C0;color:white;border-radius:6px;cursor:pointer;font-size:14px">Réessayer</button>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('loading').style.display = 'none';
+}
+
+// ── Boot
+loadData();
+</script>
+</body>
+</html>
