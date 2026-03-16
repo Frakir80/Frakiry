@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oriane-Connect — Contrat Commercial | Alémiane</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --red: #C5003A; --orange: #F5A623; --dark: #1A2130; --navy: #1E293B;
+      --text: #2D3748; --muted: #64748B; --border: #E2E8F0; --light: #F8FAFC;
+      --gradient: linear-gradient(135deg, var(--red), var(--orange));
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--text); line-height: 1.6; }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(26,33,48,0.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 32px; height: 68px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .nav-logo-name { font-size: 18px; font-weight: 900; color: white; letter-spacing: 2.5px; }
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 500;
+      padding: 8px 14px; border-radius: 8px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: white; background: rgba(255,255,255,0.08); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 100px; padding: 6px 14px 6px 8px;
+      color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500;
+    }
+    .user-avatar {
+      width: 26px; height: 26px; background: var(--gradient); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white;
+    }
+    .btn-logout {
+      background: transparent; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.65); border-radius: 8px; padding: 7px 14px;
+      font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.08); color: white; }
+    .hero {
+      min-height: 100vh; background: var(--dark);
+      background-image: radial-gradient(ellipse at 25% 40%, rgba(197,0,58,0.2) 0%, transparent 55%),
+                        radial-gradient(ellipse at 75% 60%, rgba(245,166,35,0.15) 0%, transparent 55%);
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px;
+    }
+    .hero-inner { max-width: 820px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(197,0,58,0.15); border: 1px solid rgba(197,0,58,0.3);
+      color: #FF6B8A; border-radius: 100px; padding: 8px 18px;
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 32px;
+    }
+    .hero-title { font-size: clamp(52px, 8vw, 88px); font-weight: 900; line-height: 1; margin-bottom: 10px; color: white; }
+    .hero-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-subtitle { font-size: 20px; font-weight: 300; color: rgba(255,255,255,0.55); margin-bottom: 24px; letter-spacing: 0.5px; }
+    .hero-parties { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 48px; }
+    .hero-party {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 14px 22px; color: white;
+    }
+    .hero-party .role { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+    .hero-party .name { font-size: 15px; font-weight: 700; }
+    .hero-connector { font-size: 24px; color: rgba(255,255,255,0.2); }
+    .hero-meta { display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 44px; }
+    .hero-meta-item { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.5); font-size: 13px; }
+    .hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .cta-primary {
+      background: var(--gradient); color: white; border: none; border-radius: 12px;
+      padding: 15px 28px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(197,0,58,0.4); }
+    .cta-secondary {
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+      padding: 15px 28px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .cta-secondary:hover { background: rgba(255,255,255,0.1); color: white; }
+    .scroll-hint {
+      margin-top: 56px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: rgba(255,255,255,0.25); font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+      animation: bounce 2s ease infinite;
+    }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+    section { padding: 96px 24px; }
+    .container { max-width: 1160px; margin: 0 auto; }
+    .section-label {
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px;
+    }
+    .section-title { font-size: clamp(28px, 4vw, 42px); font-weight: 800; color: var(--navy); line-height: 1.2; margin-bottom: 16px; }
+    .section-desc { font-size: 17px; color: var(--muted); max-width: 640px; line-height: 1.7; margin-bottom: 56px; }
+    #parties { background: white; }
+    .parties-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; }
+    .party-card {
+      background: var(--light); border: 1px solid var(--border); border-radius: 20px;
+      padding: 36px 32px; position: relative; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .party-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .party-card.prestataire::before { background: var(--gradient); }
+    .party-card.client::before { background: linear-gradient(90deg, #3B82F6, #6366F1); }
+    .party-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
+    .party-role { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+    .party-card.prestataire .party-role { color: var(--red); }
+    .party-card.client .party-role { color: #3B82F6; }
+    .party-name { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 20px; }
+    .party-info { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .party-info li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--muted); }
+    .party-info li strong { color: var(--text); font-weight: 600; min-width: 90px; flex-shrink: 0; }
+    .party-connector { text-align: center; font-size: 32px; color: var(--border); }
+    #contexte { background: var(--light); }
+    .preambule-card {
+      background: white; border: 1px solid var(--border); border-radius: 20px;
+      padding: 40px; position: relative; overflow: hidden;
+    }
+    .preambule-card::before {
+      content: '"'; position: absolute; top: -10px; left: 24px;
+      font-size: 140px; font-weight: 900;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      opacity: 0.15; line-height: 1;
+    }
+    .preambule-text { font-size: 17px; color: var(--text); line-height: 1.85; position: relative; }
+    .preambule-text p { margin-bottom: 16px; }
+    .preambule-text p:last-child { margin-bottom: 0; }
+    #solution { background: var(--navy); }
+    #solution .section-title { color: white; }
+    #solution .section-desc { color: rgba(255,255,255,0.55); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .feature-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 28px; transition: background 0.3s, transform 0.3s;
+    }
+    .feature-card:hover { background: rgba(255,255,255,0.07); transform: translateY(-3px); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px; background: var(--gradient);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 18px; flex-shrink: 0;
+    }
+    .feature-icon svg { color: white; }
+    .feature-title { font-size: 16px; font-weight: 700; color: white; margin-bottom: 8px; }
+    .feature-desc { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+    #services { background: white; }
+    .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .service-block { background: var(--light); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+    .service-block-header { padding: 24px 28px; background: var(--navy); color: white; }
+    .phase-badge {
+      display: inline-block; background: var(--gradient); color: white;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      padding: 4px 10px; border-radius: 6px; margin-bottom: 10px;
+    }
+    .service-block-header h3 { font-size: 20px; font-weight: 700; }
+    .service-block-header p { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+    .service-list { padding: 24px 28px; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .service-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: var(--text); line-height: 1.5; }
+    .check-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(197,0,58,0.1), rgba(245,166,35,0.1));
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .check-icon svg { color: var(--red); }
+    #finances { background: var(--light); }
+    .total-banner {
+      background: var(--navy);
+      background-image: radial-gradient(ellipse at 30% 50%, rgba(197,0,58,0.2) 0%, transparent 60%),
+                        radial-gradient(ellipse at 70% 50%, rgba(245,166,35,0.15) 0%, transparent 60%);
+      border-radius: 24px; padding: 48px 40px; text-align: center; margin-bottom: 40px;
+    }
+    .total-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.45); margin-bottom: 12px; }
+    .total-amount {
+      font-size: clamp(52px, 8vw, 80px); font-weight: 900; line-height: 1; margin-bottom: 8px;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .total-sub { font-size: 16px; color: rgba(255,255,255,0.45); }
+    .total-divider { width: 60px; height: 2px; background: var(--gradient); margin: 20px auto; border-radius: 2px; }
+    .total-note { font-size: 14px; color: rgba(255,255,255,0.5); }
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    .price-card {
+      background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .price-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
+    .price-card-header { padding: 28px; background: var(--navy); color: white; }
+    .price-type {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .price-name { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .price-desc { font-size: 13px; color: rgba(255,255,255,0.5); }
+    .price-main { padding: 28px; }
+    .price-amount { font-size: 44px; font-weight: 900; color: var(--navy); line-height: 1; margin-bottom: 4px; }
+    .price-ttc { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .price-schedule { list-style: none; display: flex; flex-direction: column; gap: 0; }
+    .price-schedule li {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+    }
+    .price-schedule li:last-child { border-bottom: none; }
+    .schedule-label { color: var(--muted); }
+    .schedule-amount { font-weight: 700; color: var(--navy); font-size: 15px; }
+    .schedule-step {
+      width: 24px; height: 24px; background: var(--gradient); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-right: 10px;
+    }
+    .schedule-label-wrap { display: flex; align-items: center; }
+    .interactions-section { background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+    .interactions-header { padding: 24px 28px; background: var(--navy); color: white; }
+    .interactions-header h3 { font-size: 18px; font-weight: 700; }
+    .interactions-header p { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+    .int-table { width: 100%; border-collapse: collapse; }
+    .int-table th {
+      background: var(--light); padding: 14px 20px; text-align: left;
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--muted); border-bottom: 1px solid var(--border);
+    }
+    .int-table td { padding: 16px 20px; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--border); }
+    .int-table tr:last-child td { border-bottom: none; }
+    .int-table tr:hover td { background: var(--light); }
+    .tier-badge { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 700; }
+    .tier-silver { background: #F1F5F9; color: #475569; }
+    .tier-gold   { background: rgba(245,166,35,0.1); color: #B45309; border: 1px solid rgba(245,166,35,0.3); }
+    .tier-plat   { background: rgba(197,0,58,0.08); color: var(--red); border: 1px solid rgba(197,0,58,0.2); }
+    #planning { background: white; }
+    .timeline { position: relative; padding-top: 40px; }
+    .timeline::before {
+      content: ''; position: absolute; top: 64px; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--orange)); border-radius: 2px;
+    }
+    .timeline-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+    .timeline-item { position: relative; padding-top: 48px; }
+    .timeline-dot {
+      position: absolute; top: 52px; left: 50%; transform: translate(-50%, -50%);
+      width: 22px; height: 22px; border-radius: 50%; background: white; border: 3px solid var(--red); z-index: 2;
+    }
+    .timeline-dot.active { background: var(--gradient); border-color: transparent; box-shadow: 0 0 0 4px rgba(197,0,58,0.15); }
+    .timeline-card {
+      background: var(--light); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 16px; margin-top: 24px; transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .timeline-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .timeline-phase {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .timeline-period { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .timeline-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+    .timeline-milestone {
+      display: flex; align-items: center; gap: 6px;
+      background: white; border: 1px solid var(--border); border-radius: 8px;
+      padding: 7px 10px; font-size: 11px; color: var(--text); font-weight: 500;
+    }
+    #conditions { background: var(--light); }
+    .conditions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .condition-card {
+      background: white; border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .condition-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .condition-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .condition-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+    .condition-text { font-size: 14px; color: var(--muted); line-height: 1.65; }
+    .condition-highlight {
+      margin-top: 14px; background: var(--light); border-left: 3px solid var(--red);
+      border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: var(--text); font-weight: 500;
+    }
+    #signatures { background: white; }
+    .sig-banner {
+      background: var(--light); border: 1px solid var(--border); border-radius: 20px;
+      padding: 32px 40px; display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 40px; flex-wrap: wrap; gap: 20px;
+    }
+    .sig-meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .sig-meta-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+    .sig-meta-value { font-size: 16px; font-weight: 700; color: var(--navy); }
+    .sig-meta-divider { width: 1px; height: 40px; background: var(--border); }
+    .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .sig-card { border: 1.5px dashed var(--border); border-radius: 16px; padding: 32px 28px; text-align: center; }
+    .sig-party-role { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+    .sig-party-name { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 20px; }
+    .sig-line-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .sig-line { border-bottom: 1px solid var(--border); height: 40px; margin-bottom: 16px; }
+    .sig-mention { font-size: 12px; color: var(--muted); font-style: italic; }
+    footer { background: var(--dark); padding: 40px 24px; text-align: center; }
+    .footer-logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+    footer p { font-size: 13px; color: rgba(255,255,255,0.3); }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 900px) {
+      .parties-grid, .services-grid, .pricing-grid, .sig-grid { grid-template-columns: 1fr; }
+      .party-connector { transform: rotate(90deg); }
+      .timeline-grid { grid-template-columns: 1fr; }
+      .timeline::before { display: none; }
+      .timeline-item { padding-top: 0; }
+      .timeline-dot { display: none; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 600px) { nav { padding: 0 16px; } section { padding: 64px 16px; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#top">
+    <div class="nav-logo-icon">
+      <svg width="22" height="20" viewBox="0 0 30 26" fill="none">
+        <path d="M15 2C11 2 7.5 4.5 6 8C4 9 2.5 11 2.5 13.5C2.5 17 5 19.5 8 20.5V23H15V2Z" fill="rgba(255,255,255,0.5)"/>
+        <path d="M15 2C19 2 22.5 4.5 24 8C26 9 27.5 11 27.5 13.5C27.5 17 25 19.5 22 20.5V23H15V2Z" fill="rgba(255,255,255,0.9)"/>
+      </svg>
+    </div>
+    <div class="nav-logo-name">ALÉMIANE</div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#parties">Les parties</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#finances">Finances</a></li>
+    <li><a href="#planning">Planning</a></li>
+    <li><a href="#conditions">Conditions</a></li>
+    <li><a href="#signatures">Signatures</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">C</div>
+      <span id="userName">christian</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Déconnexion</button>
+  </div>
+</nav>
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+      Contrat commercial — Version 1.2
+    </div>
+    <h1 class="hero-title"><span>Oriane</span>-Connect</h1>
+    <p class="hero-subtitle">Plateforme numérique d'aide à l'orientation et à la coordination</p>
+    <div class="hero-parties">
+      <div class="hero-party">
+        <div class="role">Prestataire</div>
+        <div class="name">Alémiane</div>
+      </div>
+      <div class="hero-connector">×</div>
+      <div class="hero-party">
+        <div class="role">Client</div>
+        <div class="name">Appui Santé Somme</div>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Fait à Amiens, le 13 mars 2026
+      </div>
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Durée initiale : 12 mois
+      </div>
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        Amiens — Somme (80)
+      </div>
+    </div>
+    <div class="hero-ctas">
+      <a class="cta-primary" href="#finances">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+        Conditions financières
+      </a>
+      <a class="cta-secondary" href="#planning">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Planning du projet
+      </a>
+    </div>
+    <div class="scroll-hint">
+      <span>Défiler</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="parties">
+  <div class="container">
+    <p class="section-label">Identification</p>
+    <h2 class="section-title">Les parties au contrat</h2>
+    <div class="parties-grid reveal">
+      <div class="party-card prestataire">
+        <div class="party-role">Le Prestataire</div>
+        <div class="party-name">ALÉMIANE</div>
+        <ul class="party-info">
+          <li><strong>Forme :</strong> Société par Actions Simplifiée (SAS)</li>
+          <li><strong>Capital :</strong> 1 000 €</li>
+          <li><strong>Siège :</strong> 21, rue Benoît Frachon — 80330 Longueau</li>
+          <li><strong>RCS :</strong> Amiens — N° 102 103 660</li>
+          <li><strong>TVA intra. :</strong> FR27 102 103 660</li>
+          <li><strong>Représentant :</strong> Jean-François PIAT, Président</li>
+        </ul>
+      </div>
+      <div class="party-connector">⟷</div>
+      <div class="party-card client">
+        <div class="party-role">Le Client</div>
+        <div class="party-name">Appui Santé Somme</div>
+        <ul class="party-info">
+          <li><strong>Forme :</strong> Association loi 1901</li>
+          <li><strong>Mission :</strong> DAC de la Somme</li>
+          <li><strong>Siège :</strong> 354 Bd de Beauvillé — 80000 Amiens</li>
+          <li><strong>SIRET :</strong> 913 252 144 00039</li>
+          <li><strong>Représentant :</strong> Christian CLAIRE, Président</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contexte">
+  <div class="container">
+    <p class="section-label">Préambule</p>
+    <h2 class="section-title">Contexte &amp; objet du contrat</h2>
+    <div class="preambule-card reveal">
+      <div class="preambule-text">
+        <p>L'Association Appui Santé Somme porte le Dispositif d'Appui à la Coordination (DAC) de la Somme, dont la mission est d'accompagner les professionnels des secteurs sanitaire, social et médico-social dans la gestion de parcours de santé complexes.</p>
+        <p>Dans ce cadre, l'Association a souhaité se doter d'un outil numérique innovant permettant d'améliorer l'orientation des professionnels vers les ressources adaptées du territoire, de faciliter la coordination des acteurs et de renforcer la lisibilité de l'offre existante.</p>
+        <p>La société Alémiane, spécialisée dans la conception et l'exploitation de solutions numériques souveraines, sécurisées et personnalisées, notamment fondées sur l'intelligence artificielle, a proposé une solution logicielle répondant à ces besoins.</p>
+        <p><strong>La solution Oriane-Connect</strong> est une plateforme numérique accessible en mode SaaS, intégrant un assistant intelligent destiné à simplifier la recherche d'informations et à soutenir la prise de décision des professionnels dans l'accompagnement des situations complexes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="container">
+    <p class="section-label">La Solution</p>
+    <h2 class="section-title">Oriane-Connect en détail</h2>
+    <p class="section-desc">Une plateforme SaaS conçue pour les professionnels du secteur sanitaire, social et médico-social de la Somme.</p>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="feature-title">Assistant intelligent intégré</div>
+        <div class="feature-desc">Un assistant IA qui simplifie la recherche d'informations et soutient la prise de décision des professionnels.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <div class="feature-title">Mode SaaS, accès web</div>
+        <div class="feature-desc">Accessible à distance par tous les utilisateurs autorisés, sans installation, via un simple navigateur.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="feature-title">Hébergement souverain France/UE</div>
+        <div class="feature-desc">Infrastructure sécurisée hébergée en France ou dans l'Union européenne. Conformité RGPD garantie.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/>
+          </svg>
+        </div>
+        <div class="feature-title">Jusqu'à 200 utilisateurs inscrits</div>
+        <div class="feature-desc">30 utilisateurs simultanés, accès réservé aux professionnels autorisés par l'Association.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <div class="feature-title">Tableau de bord de suivi</div>
+        <div class="feature-desc">Monitoring en temps réel de la consommation d'interactions. Alerte automatique à 80% du quota mensuel.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="feature-title">Données territorialisées</div>
+        <div class="feature-desc">Intégration de la base de données territoriale du DAC Somme (min. 200 fiches ressources structurées).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="container">
+    <p class="section-label">Périmètre</p>
+    <h2 class="section-title">Services inclus au contrat</h2>
+    <p class="section-desc">Deux volets concomitants : la phase de mise en œuvre du projet et l'abonnement SaaS, actifs dès la signature.</p>
+    <div class="services-grid reveal">
+      <div class="service-block">
+        <div class="service-block-header">
+          <div class="phase-badge">Phase Projet</div>
+          <h3>Mise en œuvre &amp; déploiement</h3>
+          <p>Forfait unique — jusqu'à la recette</p>
+        </div>
+        <ul class="service-list">
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Analyse des besoins fonctionnels et techniques du DAC</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Configuration et personnalisation d'Oriane-Connect</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Intégration des données territoriales du Client</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Mise en place de l'environnement technique</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Accompagnement lors des phases de tests et validation</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Documentation utilisateur &amp; guide d'administration</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Mise en production de la Solution</li>
+        </ul>
+      </div>
+      <div class="service-block">
+        <div class="service-block-header">
+          <div class="phase-badge">SaaS &amp; Exploitation</div>
+          <h3>Services continus inclus</h3>
+          <p>Abonnement annuel — dès la signature</p>
+        </div>
+        <ul class="service-list">
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Accès sécurisé à la plateforme pour les utilisateurs autorisés</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Hébergement sécurisé en France ou dans l'UE</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Maintenance corrective des anomalies</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Maintenance évolutive mineure (≤ 2h / demande)</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Support utilisateur via Agent IA</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Supervision technique et mises à jour sécurité</li>
+          <li><div class="check-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Sauvegardes régulières — disponibilité cible 99%/mois</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="finances">
+  <div class="container">
+    <p class="section-label">Conditions financières</p>
+    <h2 class="section-title">Investissement &amp; tarification</h2>
+    <p class="section-desc">Deux composantes distinctes : un forfait projet unique et un abonnement SaaS annuel.</p>
+    <div class="total-banner reveal">
+      <div class="total-label">Engagement financier total initial</div>
+      <div class="total-amount">30 000 €</div>
+      <div class="total-sub">Toutes taxes comprises</div>
+      <div class="total-divider"></div>
+      <div class="total-note">Forfait projet 24 000 € TTC + Abonnement SaaS 12 mois 6 000 € TTC</div>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-card-header">
+          <div class="price-type">Forfait Unique</div>
+          <div class="price-name">Mise en œuvre du projet</div>
+          <div class="price-desc">Conception, configuration, déploiement et recette</div>
+        </div>
+        <div class="price-main">
+          <div class="price-amount">24 000 €</div>
+          <div class="price-ttc">TTC — Paiement en 3 échéances</div>
+          <ul class="price-schedule">
+            <li>
+              <div class="schedule-label-wrap"><div class="schedule-step">1</div><span class="schedule-label">À la signature du contrat</span></div>
+              <span class="schedule-amount">9 000 € TTC</span>
+            </li>
+            <li>
+              <div class="schedule-label-wrap"><div class="schedule-step">2</div><span class="schedule-label">Livrables intermédiaires (L1, L2, L3)</span></div>
+              <span class="schedule-amount">8 000 € TTC</span>
+            </li>
+            <li>
+              <div class="schedule-label-wrap"><div class="schedule-step">3</div><span class="schedule-label">Signature du PV de recette</span></div>
+              <span class="schedule-amount">7 000 € TTC</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="price-card reveal">
+        <div class="price-card-header">
+          <div class="price-type">Abonnement Annuel</div>
+          <div class="price-name">SaaS &amp; exploitation continue</div>
+          <div class="price-desc">Actif dès la signature, facturation trimestrielle anticipée</div>
+        </div>
+        <div class="price-main">
+          <div class="price-amount">6 000 €</div>
+          <div class="price-ttc">TTC / an — soit 1 500 € TTC / trimestre</div>
+          <ul class="price-schedule">
+            <li><div class="schedule-label-wrap"><span class="schedule-label">Facturation</span></div><span class="schedule-amount">Trimestrielle anticipée</span></li>
+            <li><div class="schedule-label-wrap"><span class="schedule-label">Durée initiale</span></div><span class="schedule-amount">12 mois</span></li>
+            <li><div class="schedule-label-wrap"><span class="schedule-label">Reconduction</span></div><span class="schedule-amount">Tacite, par an</span></li>
+            <li><div class="schedule-label-wrap"><span class="schedule-label">Révision annuelle</span></div><span class="schedule-amount">Indice Syntec</span></li>
+            <li><div class="schedule-label-wrap"><span class="schedule-label">Paiement sous</span></div><span class="schedule-amount">30 jours</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="interactions-section reveal">
+      <div class="interactions-header">
+        <h3>Quotas d'interactions — Assistant IA</h3>
+        <p>Volume mensuel d'échanges utilisateur ↔ assistant intelligent, selon l'offre souscrite</p>
+      </div>
+      <table class="int-table">
+        <thead>
+          <tr>
+            <th>Offre</th><th>Inclus / mois</th><th>Plafond max / mois</th><th>Surplus (par interaction)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="tier-badge tier-silver">Silver</span></td><td>6 000</td><td>8 000</td><td>0,046 € TTC</td></tr>
+          <tr><td><span class="tier-badge tier-gold">Gold</span></td><td>10 000</td><td>12 000</td><td>0,035 € TTC</td></tr>
+          <tr><td><span class="tier-badge tier-plat">Platinum</span></td><td>15 000</td><td>20 000</td><td>0,029 € TTC</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="planning">
+  <div class="container">
+    <p class="section-label">Calendrier</p>
+    <h2 class="section-title">Planning prévisionnel du projet</h2>
+    <p class="section-desc">5 phases de déploiement, de la validation des données territoriales à la mise en production et à l'exploitation.</p>
+    <div class="timeline reveal">
+      <div class="timeline-grid">
+        <div class="timeline-item">
+          <div class="timeline-dot active"></div>
+          <div class="timeline-card">
+            <div class="timeline-phase">Phase 1</div>
+            <div class="timeline-period">Fév — Mars 2026</div>
+            <div class="timeline-desc">Validation des données territoriales (DAC)</div>
+            <div class="timeline-milestone">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Base de données validée
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-phase">Phase 2</div>
+            <div class="timeline-period">Avr — Mai 2026</div>
+            <div class="timeline-desc">Intégration et paramétrage final (Alémiane)</div>
+            <div class="timeline-milestone">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Livrables L1, L2, L3
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-phase">Phase 3</div>
+            <div class="timeline-period">Juin — Juil. 2026</div>
+            <div class="timeline-desc">Tests utilisateurs et ajustements (partagée)</div>
+            <div class="timeline-milestone">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Version stabilisée
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-phase">Phase 4</div>
+            <div class="timeline-period">Septembre 2026</div>
+            <div class="timeline-desc">Recette et mise en production (partagée)</div>
+            <div class="timeline-milestone">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Signature PV de recette
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-phase">Phase 5</div>
+            <div class="timeline-period">À partir d'Oct. 2026</div>
+            <div class="timeline-desc">Exploitation et renouvellement</div>
+            <div class="timeline-milestone">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Décision 2 mois avant échéance
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="conditions">
+  <div class="container">
+    <p class="section-label">Dispositions contractuelles</p>
+    <h2 class="section-title">Conditions clés du contrat</h2>
+    <div class="conditions-grid">
+      <div class="condition-card reveal">
+        <div class="condition-icon" style="background:rgba(197,0,58,0.08)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C5003A" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="condition-title">Durée &amp; Reconduction</div>
+        <div class="condition-text">Durée initiale de 12 mois à compter de la signature. Tacitement reconductible par périodes d'un an. Résiliation par lettre recommandée AR.</div>
+        <div class="condition-highlight">Résiliation selon CGV Alémiane</div>
+      </div>
+      <div class="condition-card reveal">
+        <div class="condition-icon" style="background:rgba(245,166,35,0.08)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="condition-title">Résiliation anticipée</div>
+        <div class="condition-text">En cas de manquement grave non réparé dans les 30 jours suivant mise en demeure par LRAR. Les sommes facturées restent dues.</div>
+        <div class="condition-highlight">Abonnements en cours non remboursés</div>
+      </div>
+      <div class="condition-card reveal">
+        <div class="condition-icon" style="background:rgba(59,130,246,0.08)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="condition-title">Propriété intellectuelle</div>
+        <div class="condition-text">La Solution Oriane-Connect demeure la propriété exclusive d'Alémiane. Licence d'usage non exclusive, non cessible, limitée au DAC de la Somme et à la durée du contrat.</div>
+        <div class="condition-highlight">Pas d'accès au code source pour le Client</div>
+      </div>
+      <div class="condition-card reveal">
+        <div class="condition-icon" style="background:rgba(16,185,129,0.08)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+        <div class="condition-title">Données personnelles &amp; RGPD</div>
+        <div class="condition-text">Alémiane agit en sous-traitant (art. 28 RGPD). Confidentialité pendant la durée du contrat + 10 ans. Restitution des données dans les 30 jours suivant la fin du contrat.</div>
+        <div class="condition-highlight">Caviardage automatique des données personnelles</div>
+      </div>
+      <div class="condition-card reveal">
+        <div class="condition-icon" style="background:rgba(139,92,246,0.08)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <div class="condition-title">Disponibilité &amp; SLA</div>
+        <div class="condition-text">Disponibilité cible de 99% sur base mensuelle, hors maintenances programmées et causes extérieures. Obligation de moyens. Reporting 2 fois/an sur demande.</div>
+        <div class="condition-highlight">Notification au Client en cas d'incident</div>
+      </div>
+      <div class="condition-card reveal">
+        <div class="condition-icon" style="background:rgba(239,68,68,0.08)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+          </svg>
+        </div>
+        <div class="condition-title">Limitation de responsabilité</div>
+        <div class="condition-text">Responsabilité plafonnée aux sommes perçues sur les 12 derniers mois. Exclusion des dommages indirects. La Solution est un outil d'aide, non décisionnaire.</div>
+        <div class="condition-highlight">Tribunal compétent : Amiens — Droit français</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="signatures">
+  <div class="container">
+    <p class="section-label">Finalisation</p>
+    <h2 class="section-title">Signatures &amp; engagement</h2>
+    <div class="sig-banner reveal">
+      <div class="sig-meta-item"><div class="sig-meta-label">Lieu</div><div class="sig-meta-value">Amiens</div></div>
+      <div class="sig-meta-divider"></div>
+      <div class="sig-meta-item"><div class="sig-meta-label">Date</div><div class="sig-meta-value">13 mars 2026</div></div>
+      <div class="sig-meta-divider"></div>
+      <div class="sig-meta-item"><div class="sig-meta-label">Version</div><div class="sig-meta-value">1.2</div></div>
+      <div class="sig-meta-divider"></div>
+      <div class="sig-meta-item"><div class="sig-meta-label">Exemplaires</div><div class="sig-meta-value">2 originaux</div></div>
+      <div class="sig-meta-divider"></div>
+      <div class="sig-meta-item">
+        <div class="sig-meta-label">Engagement total</div>
+        <div class="sig-meta-value" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">30 000 € TTC</div>
+      </div>
+    </div>
+    <div class="sig-grid reveal">
+      <div class="sig-card">
+        <div class="sig-party-role" style="color:var(--red)">Pour Alémiane</div>
+        <div class="sig-party-name">Jean-François PIAT</div>
+        <div class="sig-line-label">Titre</div>
+        <div class="sig-line"></div>
+        <div class="sig-line-label">Signature</div>
+        <div class="sig-line"></div>
+        <div class="sig-mention">Dûment habilité</div>
+      </div>
+      <div class="sig-card">
+        <div class="sig-party-role" style="color:#3B82F6">Pour Appui Santé Somme</div>
+        <div class="sig-party-name">Christian CLAIRE</div>
+        <div class="sig-line-label">Titre : Président</div>
+        <div class="sig-line"></div>
+        <div class="sig-line-label">Signature précédée de « Lu et approuvé »</div>
+        <div class="sig-line"></div>
+        <div class="sig-mention">Dûment habilité aux fins des présentes</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">
+    <div style="width:32px;height:32px;border-radius:8px;background:var(--gradient);display:flex;align-items:center;justify-content:center;">
+      <svg width="18" height="16" viewBox="0 0 30 26" fill="none">
+        <path d="M15 2C11 2 7.5 4.5 6 8C4 9 2.5 11 2.5 13.5C2.5 17 5 19.5 8 20.5V23H15V2Z" fill="rgba(255,255,255,0.5)"/>
+        <path d="M15 2C19 2 22.5 4.5 24 8C26 9 27.5 11 27.5 13.5C27.5 17 25 19.5 22 20.5V23H15V2Z" fill="rgba(255,255,255,0.9)"/>
+      </svg>
+    </div>
+    <span style="font-size:16px;font-weight:900;color:white;letter-spacing:2px;">ALÉMIANE</span>
+  </div>
+  <p>Document strictement confidentiel — Contrat Oriane-Connect × Appui Santé Somme</p>
+  <p style="margin-top:8px;">© 2026 Alémiane — 21 rue Benoît Frachon, 80330 Longueau — <a href="http://www.alemiane.org" style="color:rgba(255,255,255,0.35);text-decoration:none;">www.alemiane.org</a></p>
+</footer>
+
+<script>
+  (async () => {
+    const token = localStorage.getItem('contract_token');
+    if (!token) { window.location.href = '/'; return; }
+    try {
+      const res = await fetch('/api/check-auth', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!res.ok) { window.location.href = '/'; return; }
+      const data = await res.json();
+      const name = data.username || '';
+      document.getElementById('userName').textContent = name;
+      document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+    } catch { window.location.href = '/'; }
+  })();
+
+  function logout() {
+    localStorage.removeItem('contract_token');
+    localStorage.removeItem('contract_user');
+    window.location.href = '/';
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const secObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.style.color = '');
+        const lnk = document.querySelector('.nav-links a[href="#' + e.target.id + '"]');
+        if (lnk) lnk.style.color = 'white';
+      }
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('section[id]').forEach(s => secObserver.observe(s));
+</script>
+</body>
+</html>

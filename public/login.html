@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alémiane — Accès Contrat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --red: #C5003A;
+      --orange: #F5A623;
+      --dark: #1A2130;
+      --text: #2D3748;
+      --muted: #718096;
+      --border: #E2E8F0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--dark);
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(197, 0, 58, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(245, 166, 35, 0.10) 0%, transparent 60%);
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 48px 44px 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+      animation: fadeUp 0.5s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- LOGO ---- */
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg { display: block; }
+
+    .logo-name {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--dark);
+      letter-spacing: 3px;
+      line-height: 1;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #FFF5F7;
+      color: var(--red);
+      border: 1px solid #FFD0DC;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 6px 14px;
+      width: fit-content;
+      margin: 16px auto 28px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .card-sub {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    /* ---- FORM ---- */
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--text);
+      background: #FAFBFC;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--red);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(197, 0, 58, 0.08);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--red), #E8305A);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(197,0,58,0.35); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .error {
+      background: #FFF5F7;
+      border: 1px solid #FFD0DC;
+      color: var(--red);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+      padding-top: 24px;
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <div class="logo-icon">
+        <!-- brain / circuit icon -->
+        <svg width="30" height="26" viewBox="0 0 30 26" fill="none">
+          <path d="M15 2C11 2 7.5 4.5 6 8C4 9 2.5 11 2.5 13.5C2.5 17 5 19.5 8 20.5V23H15V2Z" fill="rgba(255,255,255,0.5)"/>
+          <path d="M15 2C19 2 22.5 4.5 24 8C26 9 27.5 11 27.5 13.5C27.5 17 25 19.5 22 20.5V23H15V2Z" fill="rgba(255,255,255,0.85)"/>
+          <circle cx="9" cy="10" r="1.2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="7" cy="15" r="1.2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="11" cy="19" r="1.2" fill="rgba(255,255,255,0.7)"/>
+          <line x1="9" y1="10" x2="7" y2="15" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+          <line x1="7" y1="15" x2="11" y2="19" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+          <circle cx="21" cy="10" r="1.2" fill="rgba(255,255,255,0.9)"/>
+          <circle cx="23" cy="15" r="1.2" fill="rgba(255,255,255,0.9)"/>
+          <circle cx="19" cy="19" r="1.2" fill="rgba(255,255,255,0.9)"/>
+          <line x1="21" y1="10" x2="23" y2="15" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
+          <line x1="23" y1="15" x2="19" y2="19" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
+          <line x1="15" y1="2" x2="15" y2="23" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+        </svg>
+      </div>
+      <div class="logo-name">ALÉMIANE</div>
+    </div>
+
+    <div class="badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      Document confidentiel
+    </div>
+
+    <h1 class="card-title">Accès à votre contrat</h1>
+    <p class="card-sub">Oriane-Connect &times; Appui Santé Somme</p>
+
+    <form id="form">
+      <div class="form-group">
+        <label for="username">Identifiant</label>
+        <input type="text" id="username" placeholder="Votre identifiant" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="Votre mot de passe" autocomplete="current-password" required>
+      </div>
+      <button class="btn" type="submit" id="btn">
+        <span id="btnText">Accéder au contrat</span>
+        <span class="spinner" id="spinner"></span>
+        <svg id="btnArrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+      <div class="error" id="error">Identifiants incorrects. Veuillez réessayer.</div>
+    </form>
+
+    <div class="footer">
+      <p>Ce document est strictement confidentiel.<br>Accès réservé aux personnes autorisées.</p>
+      <p style="margin-top:8px">© 2026 Alémiane — Tous droits réservés</p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const btn = document.getElementById('btn');
+    const btnText = document.getElementById('btnText');
+    const spinner = document.getElementById('spinner');
+    const btnArrow = document.getElementById('btnArrow');
+    const error = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.style.display = 'none';
+      btn.disabled = true;
+      btnText.textContent = 'Connexion…';
+      spinner.style.display = 'block';
+      btnArrow.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value.trim().toLowerCase(),
+            password: document.getElementById('password').value
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('contract_token', data.token);
+          localStorage.setItem('contract_user', data.username);
+          window.location.href = '/contract';
+        } else {
+          throw new Error();
+        }
+      } catch {
+        error.style.display = 'block';
+        btn.disabled = false;
+        btnText.textContent = 'Accéder au contrat';
+        spinner.style.display = 'none';
+        btnArrow.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

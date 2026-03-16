@@ -3,12 +3,47 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
 const { WebSocketServer, WebSocket } = require("ws");
+const crypto = require("crypto");
+const path = require("path");
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+app.use(express.static(path.join(__dirname, "public")));
+
+// ---- Auth ----
+const USERS = {
+  christian: "AppuiSanté&Alémiane26",
+  aurore:    "AppuiSanté&Alémiane26"
+};
+const sessions = new Map();
+
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "login.html")));
+app.get("/contract", (req, res) => res.sendFile(path.join(__dirname, "public", "contract.html")));
+
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body || {};
+  const key = (username || "").toLowerCase();
+  if (USERS[key] && USERS[key] === password) {
+    const token = crypto.randomBytes(32).toString("hex");
+    sessions.set(token, { username: key, expires: Date.now() + 8 * 60 * 60 * 1000 });
+    return res.json({ success: true, token, username: key });
+  }
+  res.status(401).json({ success: false });
+});
+
+app.get("/api/check-auth", (req, res) => {
+  const auth = req.headers.authorization || "";
+  const token = auth.replace("Bearer ", "");
+  const session = sessions.get(token);
+  if (!session || Date.now() > session.expires) {
+    sessions.delete(token);
+    return res.status(401).json({ authenticated: false });
+  }
+  res.json({ authenticated: true, username: session.username });
+});
 
 const PORT = process.env.PORT || 4000;
 
