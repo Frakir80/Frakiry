@@ -1,0 +1,165 @@
+{
+  "name": "New Sources — Reddit, GitHub, BetaList, Lobsters",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "HTTP - Reddit r/SaaS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/SaaS/new.json?limit=25&t=day",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "MarketIntelligence/1.0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "name": "Normalize - Reddit SaaS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 100],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst posts = data.data?.children || [];\n\nreturn posts\n  .filter(p => {\n    const d = p.data;\n    return d.selftext\n      && d.selftext.trim() !== ''\n      && d.selftext !== '[removed]'\n      && d.selftext !== '[deleted]'\n      && d.score >= 5;\n  })\n  .map((p, i) => {\n    const d = p.data;\n    const isExternal = d.url\n      && !d.url.includes('reddit.com')\n      && !d.url.includes('redd.it');\n    return {\n      json: {\n        id: `reddit_saas_${i}`,\n        source: 'reddit_saas',\n        title: d.title,\n        description: d.selftext.substring(0, 400),\n        url: isExternal ? d.url : `https://reddit.com${d.permalink}`\n      }\n    };\n  });"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0002-0002-0002-000000000001",
+      "name": "HTTP - Reddit r/indiehackers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 320],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/indiehackers/new.json?limit=25&t=day",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "MarketIntelligence/1.0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Normalize - Reddit IH",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 320],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst posts = data.data?.children || [];\n\nreturn posts\n  .filter(p => {\n    const d = p.data;\n    return d.selftext\n      && d.selftext.trim() !== ''\n      && d.selftext !== '[removed]'\n      && d.selftext !== '[deleted]'\n      && d.score >= 5;\n  })\n  .map((p, i) => {\n    const d = p.data;\n    const isExternal = d.url\n      && !d.url.includes('reddit.com')\n      && !d.url.includes('redd.it');\n    return {\n      json: {\n        id: `reddit_ih_${i}`,\n        source: 'reddit_indiehackers',\n        title: d.title,\n        description: d.selftext.substring(0, 400),\n        url: isExternal ? d.url : `https://reddit.com${d.permalink}`\n      }\n    };\n  });"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0003-0003-0003-000000000001",
+      "name": "HTTP - GitHub Trending",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 540],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/search/repositories?q=created:>={{ $now.minus({days: 1}).toFormat('yyyy-MM-dd') }}&sort=stars&order=desc&per_page=20",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0003-0003-0003-000000000002",
+      "name": "Normalize - GitHub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 540],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst repos = data.items || [];\n\nreturn repos\n  .filter(r => r.description && r.description.trim() !== '')\n  .map((r, i) => ({\n    json: {\n      id: `github_${i}`,\n      source: 'github_trending',\n      title: r.full_name,\n      description: `${r.description} | ⭐ ${r.stargazers_count} | ${r.language || 'N/A'}`,\n      url: r.html_url\n    }\n  }));"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0004-0004-0004-000000000001",
+      "name": "RSS - BetaList",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [1000, 760],
+      "parameters": {
+        "url": "https://betalist.com/feed"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0004-0004-0004-000000000002",
+      "name": "Normalize - BetaList",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 760],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all()\n  .filter(item => item.json.title && item.json.link)\n  .map((item, i) => ({\n    json: {\n      id: `betalist_${i}`,\n      source: 'betalist',\n      title: item.json.title,\n      description: item.json.contentSnippet || item.json.summary || item.json.content || '',\n      url: item.json.link\n    }\n  }));"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0005-0005-0005-000000000001",
+      "name": "HTTP - Lobsters",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 980],
+      "parameters": {
+        "method": "GET",
+        "url": "https://lobste.rs/newest.json"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0005-0005-0005-000000000002",
+      "name": "Normalize - Lobsters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 980],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst items = Array.isArray(data) ? data : [];\n\nreturn items\n  .filter(item => item.title)\n  .map((item, i) => ({\n    json: {\n      id: `lobsters_${i}`,\n      source: 'lobsters',\n      title: item.title,\n      description: `Tags: ${(item.tags || []).join(', ')} | Score: ${item.score} | Comments: ${item.comment_count}`,\n      url: item.url || `https://lobste.rs${item.short_id_url}`\n    }\n  }));"
+      }
+    }
+  ],
+  "connections": {
+    "HTTP - Reddit r/SaaS": {
+      "main": [[{"node": "Normalize - Reddit SaaS", "type": "main", "index": 0}]]
+    },
+    "HTTP - Reddit r/indiehackers": {
+      "main": [[{"node": "Normalize - Reddit IH", "type": "main", "index": 0}]]
+    },
+    "HTTP - GitHub Trending": {
+      "main": [[{"node": "Normalize - GitHub", "type": "main", "index": 0}]]
+    },
+    "RSS - BetaList": {
+      "main": [[{"node": "Normalize - BetaList", "type": "main", "index": 0}]]
+    },
+    "HTTP - Lobsters": {
+      "main": [[{"node": "Normalize - Lobsters", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "_comment": "Importer ce workflow dans N8N, puis copier-coller les 10 nœuds dans le workflow principal. Connecter chaque nœud Normalize-* vers le nœud Merge existant (entrées supplémentaires)."
+  }
+}
