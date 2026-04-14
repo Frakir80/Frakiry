@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitcoin Live Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btc-icon {
+      width: 42px; height: 42px;
+      background: #f7931a;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 22px; color: #fff;
+    }
+    h1 { font-size: 1.6rem; font-weight: 700; }
+    h1 span { color: #f7931a; }
+    .price-box {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    #current-price {
+      font-size: 2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    #price-change {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .up   { color: #3fb950; background: rgba(63,185,80,.15); }
+    .down { color: #f85149; background: rgba(248,81,73,.15); }
+    .chart-container {
+      width: 95%;
+      max-width: 1200px;
+      flex: 1;
+      min-height: 400px;
+      padding: 16px;
+    }
+    .stats {
+      width: 95%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+    .stat-card .label { font-size: .78rem; color: #8b949e; margin-bottom: 4px; }
+    .stat-card .value { font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .status {
+      position: fixed;
+      bottom: 12px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .75rem;
+      color: #8b949e;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #3fb950;
+      animation: pulse 2s infinite;
+    }
+    .dot.off { background: #f85149; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-group">
+      <div class="btc-icon">B</div>
+      <h1><span>Bitcoin</span> Live Chart</h1>
+    </div>
+    <div class="price-box">
+      <span id="current-price">--</span>
+      <span id="price-change" class="up">--</span>
+    </div>
+  </header>
+
+  <div class="chart-container">
+    <canvas id="btcChart"></canvas>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Plus haut (session)</div>
+      <div class="value" id="stat-high">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Plus bas (session)</div>
+      <div class="value" id="stat-low">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Nb de ticks</div>
+      <div class="value" id="stat-ticks">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Derniere maj</div>
+      <div class="value" id="stat-time">--</div>
+    </div>
+  </div>
+
+  <div class="status">
+    <div class="dot" id="ws-dot"></div>
+    <span id="ws-status">Connexion...</span>
+  </div>
+
+  <script>
+    const MAX_POINTS = 300;
+    const fmt = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
+
+    // Chart setup
+    const ctx = document.getElementById('btcChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(247,147,26,.35)');
+    gradient.addColorStop(1, 'rgba(247,147,26,.0)');
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [{
+          label: 'BTC/USDT',
+          data: [],
+          borderColor: '#f7931a',
+          borderWidth: 2,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+          pointHitRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#161b22',
+            borderColor: '#30363d',
+            borderWidth: 1,
+            titleColor: '#8b949e',
+            bodyColor: '#e6edf3',
+            bodyFont: { weight: 'bold' },
+            callbacks: {
+              label: (ctx) => fmt(ctx.parsed.y)
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: { tooltipFormat: 'HH:mm:ss', displayFormats: { second: 'HH:mm:ss', minute: 'HH:mm' } },
+            ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 11 } },
+            grid: { color: 'rgba(48,54,61,.5)' }
+          },
+          y: {
+            ticks: {
+              color: '#8b949e',
+              font: { size: 11 },
+              callback: (v) => '$' + v.toLocaleString()
+            },
+            grid: { color: 'rgba(48,54,61,.5)' }
+          }
+        }
+      }
+    });
+
+    // State
+    let sessionHigh = -Infinity;
+    let sessionLow = Infinity;
+    let tickCount = 0;
+    let firstPrice = null;
+
+    function updateStats(price, time) {
+      tickCount++;
+      if (firstPrice === null) firstPrice = price;
+      if (price > sessionHigh) sessionHigh = price;
+      if (price < sessionLow) sessionLow = price;
+
+      document.getElementById('current-price').textContent = fmt(price);
+      document.getElementById('stat-high').textContent = fmt(sessionHigh);
+      document.getElementById('stat-low').textContent = fmt(sessionLow);
+      document.getElementById('stat-ticks').textContent = tickCount.toLocaleString();
+      document.getElementById('stat-time').textContent = time.toLocaleTimeString('fr-FR');
+
+      const pct = ((price - firstPrice) / firstPrice * 100).toFixed(2);
+      const el = document.getElementById('price-change');
+      el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+      el.className = pct >= 0 ? 'up' : 'down';
+    }
+
+    // WebSocket to Binance
+    function connect() {
+      const dot = document.getElementById('ws-dot');
+      const statusEl = document.getElementById('ws-status');
+
+      const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+
+      ws.onopen = () => {
+        dot.classList.remove('off');
+        statusEl.textContent = 'Connecte — Binance stream';
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const price = parseFloat(data.p);
+        const time = new Date(data.T);
+
+        // Add to chart
+        chart.data.datasets[0].data.push({ x: time, y: price });
+        if (chart.data.datasets[0].data.length > MAX_POINTS) {
+          chart.data.datasets[0].data.shift();
+        }
+        chart.update('none'); // no animation for perf
+
+        updateStats(price, time);
+      };
+
+      ws.onclose = () => {
+        dot.classList.add('off');
+        statusEl.textContent = 'Deconnecte — reconnexion dans 3s...';
+        setTimeout(connect, 3000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>
