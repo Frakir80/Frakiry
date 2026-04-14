@@ -19,7 +19,7 @@
     }
     header {
       width: 100%;
-      padding: 24px 32px;
+      padding: 24px 32px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -58,18 +58,88 @@
     }
     .up   { color: #3fb950; background: rgba(63,185,80,.15); }
     .down { color: #f85149; background: rgba(248,81,73,.15); }
-    .chart-container {
+
+    /* Period selector */
+    .toolbar {
       width: 95%;
       max-width: 1200px;
-      flex: 1;
-      min-height: 400px;
-      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px 8px;
+      flex-wrap: wrap;
     }
+    .toolbar .label {
+      font-size: .8rem;
+      color: #8b949e;
+      margin-right: 4px;
+    }
+    .period-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .82rem;
+      font-weight: 600;
+      transition: all .15s;
+    }
+    .period-btn:hover { border-color: #f7931a; color: #e6edf3; }
+    .period-btn.active {
+      background: rgba(247,147,26,.15);
+      border-color: #f7931a;
+      color: #f7931a;
+    }
+
+    .chart-wrapper {
+      width: 95%;
+      max-width: 1200px;
+      padding: 0 16px;
+      position: relative;
+    }
+    .chart-container {
+      width: 100%;
+      height: 420px;
+      position: relative;
+    }
+    .volume-container {
+      width: 100%;
+      height: 100px;
+      position: relative;
+      margin-top: -1px;
+    }
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13,17,23,.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      color: #8b949e;
+      z-index: 10;
+      border-radius: 8px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .loading-overlay.visible { opacity: 1; pointer-events: auto; }
+    .spinner {
+      width: 22px; height: 22px;
+      border: 3px solid #30363d;
+      border-top-color: #f7931a;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .stats {
       width: 95%;
       max-width: 1200px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
       padding: 16px;
       margin-bottom: 24px;
@@ -81,7 +151,7 @@
       padding: 14px 18px;
     }
     .stat-card .label { font-size: .78rem; color: #8b949e; margin-bottom: 4px; }
-    .stat-card .value { font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat-card .value { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
     .status {
       position: fixed;
       bottom: 12px;
@@ -117,45 +187,111 @@
     </div>
   </header>
 
-  <div class="chart-container">
-    <canvas id="btcChart"></canvas>
+  <div class="toolbar" id="toolbar">
+    <span class="label">Periode :</span>
+    <button class="period-btn" data-period="1d">24h</button>
+    <button class="period-btn" data-period="7d">7 jours</button>
+    <button class="period-btn active" data-period="1m">1 mois</button>
+    <button class="period-btn" data-period="3m">3 mois</button>
+    <button class="period-btn" data-period="6m">6 mois</button>
+    <button class="period-btn" data-period="1y">1 an</button>
+    <button class="period-btn" data-period="live">Live</button>
+  </div>
+
+  <div class="chart-wrapper">
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+      Chargement de l'historique...
+    </div>
+    <div class="chart-container">
+      <canvas id="priceChart"></canvas>
+    </div>
+    <div class="volume-container">
+      <canvas id="volumeChart"></canvas>
+    </div>
   </div>
 
   <div class="stats">
     <div class="stat-card">
-      <div class="label">Plus haut (session)</div>
+      <div class="label">Plus haut</div>
       <div class="value" id="stat-high">--</div>
     </div>
     <div class="stat-card">
-      <div class="label">Plus bas (session)</div>
+      <div class="label">Plus bas</div>
       <div class="value" id="stat-low">--</div>
     </div>
     <div class="stat-card">
-      <div class="label">Nb de ticks</div>
-      <div class="value" id="stat-ticks">0</div>
+      <div class="label">Ouverture</div>
+      <div class="value" id="stat-open">--</div>
     </div>
     <div class="stat-card">
-      <div class="label">Derniere maj</div>
-      <div class="value" id="stat-time">--</div>
+      <div class="label">Volume (BTC)</div>
+      <div class="value" id="stat-vol">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Bougies</div>
+      <div class="value" id="stat-candles">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Intervalle</div>
+      <div class="value" id="stat-interval">--</div>
     </div>
   </div>
 
   <div class="status">
-    <div class="dot" id="ws-dot"></div>
-    <span id="ws-status">Connexion...</span>
+    <div class="dot off" id="ws-dot"></div>
+    <span id="ws-status">Historique</span>
   </div>
 
   <script>
-    const MAX_POINTS = 300;
-    const fmt = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
+    // ── Helpers ──────────────────────────────────────────────
+    const fmt = (n) => new Intl.NumberFormat('fr-FR', {
+      style: 'currency', currency: 'USD', minimumFractionDigits: 2
+    }).format(n);
+    const fmtK = (n) => {
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(1) + 'k';
+      return n.toFixed(1);
+    };
 
-    // Chart setup
-    const ctx = document.getElementById('btcChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(247,147,26,.35)');
+    // ── Period config ───────────────────────────────────────
+    const PERIODS = {
+      '1d':  { days: 1,   interval: '5m',  label: '24h',    timeUnit: 'hour',  timeFmt: 'HH:mm' },
+      '7d':  { days: 7,   interval: '1h',  label: '7 jours', timeUnit: 'day',   timeFmt: 'dd MMM' },
+      '1m':  { days: 30,  interval: '4h',  label: '1 mois',  timeUnit: 'day',   timeFmt: 'dd MMM' },
+      '3m':  { days: 90,  interval: '12h', label: '3 mois',  timeUnit: 'week',  timeFmt: 'dd MMM' },
+      '6m':  { days: 180, interval: '1d',  label: '6 mois',  timeUnit: 'month', timeFmt: 'MMM yyyy' },
+      '1y':  { days: 365, interval: '1d',  label: '1 an',    timeUnit: 'month', timeFmt: 'MMM yyyy' },
+    };
+
+    // ── Fetch klines with pagination ────────────────────────
+    async function fetchKlines(interval, startTime, endTime) {
+      const allKlines = [];
+      let cursor = startTime;
+
+      while (cursor < endTime) {
+        const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${interval}&startTime=${cursor}&endTime=${endTime}&limit=1000`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Binance API error: ${res.status}`);
+        const data = await res.json();
+        if (data.length === 0) break;
+        allKlines.push(...data);
+        // Next page starts after last candle's open time
+        cursor = data[data.length - 1][0] + 1;
+        if (data.length < 1000) break; // no more pages
+      }
+      return allKlines;
+    }
+
+    // ── Charts setup ────────────────────────────────────────
+    const priceCtx = document.getElementById('priceChart').getContext('2d');
+    const volCtx = document.getElementById('volumeChart').getContext('2d');
+
+    const gradient = priceCtx.createLinearGradient(0, 0, 0, 420);
+    gradient.addColorStop(0, 'rgba(247,147,26,.30)');
     gradient.addColorStop(1, 'rgba(247,147,26,.0)');
 
-    const chart = new Chart(ctx, {
+    const priceChart = new Chart(priceCtx, {
       type: 'line',
       data: {
         datasets: [{
@@ -165,9 +301,9 @@
           borderWidth: 2,
           backgroundColor: gradient,
           fill: true,
-          tension: 0.3,
+          tension: 0.25,
           pointRadius: 0,
-          pointHitRadius: 6
+          pointHitRadius: 8
         }]
       },
       options: {
@@ -184,92 +320,263 @@
             bodyColor: '#e6edf3',
             bodyFont: { weight: 'bold' },
             callbacks: {
-              label: (ctx) => fmt(ctx.parsed.y)
+              title: (items) => {
+                const d = new Date(items[0].parsed.x);
+                return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+                  + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+              },
+              label: (ctx) => ' ' + fmt(ctx.parsed.y)
             }
           }
         },
         scales: {
           x: {
             type: 'time',
-            time: { tooltipFormat: 'HH:mm:ss', displayFormats: { second: 'HH:mm:ss', minute: 'HH:mm' } },
+            time: { tooltipFormat: 'dd MMM yyyy HH:mm', displayFormats: {} },
             ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 11 } },
-            grid: { color: 'rgba(48,54,61,.5)' }
+            grid: { color: 'rgba(48,54,61,.4)' }
           },
           y: {
+            position: 'right',
             ticks: {
               color: '#8b949e',
               font: { size: 11 },
               callback: (v) => '$' + v.toLocaleString()
             },
-            grid: { color: 'rgba(48,54,61,.5)' }
+            grid: { color: 'rgba(48,54,61,.4)' }
           }
         }
       }
     });
 
-    // State
-    let sessionHigh = -Infinity;
-    let sessionLow = Infinity;
-    let tickCount = 0;
-    let firstPrice = null;
+    const volumeChart = new Chart(volCtx, {
+      type: 'bar',
+      data: {
+        datasets: [{
+          label: 'Volume',
+          data: [],
+          backgroundColor: [],
+          borderWidth: 0,
+          barPercentage: 0.8,
+          categoryPercentage: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#161b22',
+            borderColor: '#30363d',
+            borderWidth: 1,
+            titleColor: '#8b949e',
+            bodyColor: '#e6edf3',
+            callbacks: {
+              label: (ctx) => ' Vol: ' + fmtK(ctx.parsed.y) + ' BTC'
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            display: false
+          },
+          y: {
+            position: 'right',
+            ticks: {
+              color: '#8b949e',
+              font: { size: 10 },
+              maxTicksLimit: 3,
+              callback: (v) => fmtK(v)
+            },
+            grid: { color: 'rgba(48,54,61,.3)' }
+          }
+        }
+      }
+    });
 
-    function updateStats(price, time) {
-      tickCount++;
-      if (firstPrice === null) firstPrice = price;
-      if (price > sessionHigh) sessionHigh = price;
-      if (price < sessionLow) sessionLow = price;
+    // ── Load historical data ────────────────────────────────
+    let currentPeriod = '1m';
+    let liveWs = null;
 
-      document.getElementById('current-price').textContent = fmt(price);
-      document.getElementById('stat-high').textContent = fmt(sessionHigh);
-      document.getElementById('stat-low').textContent = fmt(sessionLow);
-      document.getElementById('stat-ticks').textContent = tickCount.toLocaleString();
-      document.getElementById('stat-time').textContent = time.toLocaleTimeString('fr-FR');
+    async function loadPeriod(period) {
+      currentPeriod = period;
 
-      const pct = ((price - firstPrice) / firstPrice * 100).toFixed(2);
-      const el = document.getElementById('price-change');
-      el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-      el.className = pct >= 0 ? 'up' : 'down';
+      // Update active button
+      document.querySelectorAll('.period-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.period === period);
+      });
+
+      // Stop live WS if switching away from live
+      if (period !== 'live' && liveWs) {
+        liveWs.close();
+        liveWs = null;
+        document.getElementById('ws-dot').classList.add('off');
+        document.getElementById('ws-status').textContent = 'Historique';
+      }
+
+      if (period === 'live') {
+        startLive();
+        return;
+      }
+
+      const cfg = PERIODS[period];
+      const loading = document.getElementById('loading');
+      loading.classList.add('visible');
+
+      try {
+        const endTime = Date.now();
+        const startTime = endTime - cfg.days * 24 * 60 * 60 * 1000;
+        const klines = await fetchKlines(cfg.interval, startTime, endTime);
+
+        // Parse klines: [openTime, open, high, low, close, volume, closeTime, ...]
+        const priceData = [];
+        const volumeData = [];
+        const volumeColors = [];
+        let high = -Infinity, low = Infinity, totalVol = 0;
+        const openPrice = parseFloat(klines[0]?.[1]) || 0;
+
+        for (const k of klines) {
+          const time = k[0];
+          const open = parseFloat(k[1]);
+          const kHigh = parseFloat(k[2]);
+          const kLow = parseFloat(k[3]);
+          const close = parseFloat(k[4]);
+          const vol = parseFloat(k[5]);
+
+          priceData.push({ x: time, y: close });
+          volumeData.push({ x: time, y: vol });
+
+          const isGreen = close >= open;
+          volumeColors.push(isGreen ? 'rgba(63,185,80,.5)' : 'rgba(248,81,73,.5)');
+
+          if (kHigh > high) high = kHigh;
+          if (kLow < low) low = kLow;
+          totalVol += vol;
+        }
+
+        const lastPrice = priceData[priceData.length - 1]?.y || 0;
+
+        // Update price chart
+        priceChart.data.datasets[0].data = priceData;
+        priceChart.options.scales.x.time.unit = cfg.timeUnit;
+        priceChart.options.scales.x.time.displayFormats[cfg.timeUnit] = cfg.timeFmt;
+        priceChart.update('none');
+
+        // Update volume chart
+        volumeChart.data.datasets[0].data = volumeData;
+        volumeChart.data.datasets[0].backgroundColor = volumeColors;
+        volumeChart.options.scales.x.time.unit = cfg.timeUnit;
+        volumeChart.update('none');
+
+        // Update stats
+        document.getElementById('current-price').textContent = fmt(lastPrice);
+        document.getElementById('stat-high').textContent = fmt(high);
+        document.getElementById('stat-low').textContent = fmt(low);
+        document.getElementById('stat-open').textContent = fmt(openPrice);
+        document.getElementById('stat-vol').textContent = fmtK(totalVol);
+        document.getElementById('stat-candles').textContent = klines.length.toLocaleString();
+        document.getElementById('stat-interval').textContent = cfg.interval;
+
+        const pct = ((lastPrice - openPrice) / openPrice * 100).toFixed(2);
+        const el = document.getElementById('price-change');
+        el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+        el.className = pct >= 0 ? 'up' : 'down';
+
+      } catch (err) {
+        console.error('Failed to fetch history:', err);
+      } finally {
+        loading.classList.remove('visible');
+      }
     }
 
-    // WebSocket to Binance
-    function connect() {
+    // ── Live mode ───────────────────────────────────────────
+    const MAX_LIVE_POINTS = 300;
+    let liveFirstPrice = null;
+    let liveHigh = -Infinity;
+    let liveLow = Infinity;
+    let liveTicks = 0;
+
+    function startLive() {
+      // Reset live state
+      liveFirstPrice = null;
+      liveHigh = -Infinity;
+      liveLow = Infinity;
+      liveTicks = 0;
+
+      priceChart.data.datasets[0].data = [];
+      priceChart.options.scales.x.time.unit = 'second';
+      priceChart.options.scales.x.time.displayFormats.second = 'HH:mm:ss';
+      priceChart.update('none');
+
+      volumeChart.data.datasets[0].data = [];
+      volumeChart.data.datasets[0].backgroundColor = [];
+      volumeChart.update('none');
+
+      document.getElementById('stat-interval').textContent = 'tick';
+      document.getElementById('stat-vol').textContent = '--';
+      document.getElementById('stat-open').textContent = '--';
+
       const dot = document.getElementById('ws-dot');
       const statusEl = document.getElementById('ws-status');
 
-      const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+      liveWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
 
-      ws.onopen = () => {
+      liveWs.onopen = () => {
         dot.classList.remove('off');
-        statusEl.textContent = 'Connecte — Binance stream';
+        statusEl.textContent = 'Connecte — Binance live';
       };
 
-      ws.onmessage = (event) => {
+      liveWs.onmessage = (event) => {
+        if (currentPeriod !== 'live') return;
         const data = JSON.parse(event.data);
         const price = parseFloat(data.p);
         const time = new Date(data.T);
 
-        // Add to chart
-        chart.data.datasets[0].data.push({ x: time, y: price });
-        if (chart.data.datasets[0].data.length > MAX_POINTS) {
-          chart.data.datasets[0].data.shift();
-        }
-        chart.update('none'); // no animation for perf
+        liveTicks++;
+        if (liveFirstPrice === null) liveFirstPrice = price;
+        if (price > liveHigh) liveHigh = price;
+        if (price < liveLow) liveLow = price;
 
-        updateStats(price, time);
+        const ds = priceChart.data.datasets[0];
+        ds.data.push({ x: time, y: price });
+        if (ds.data.length > MAX_LIVE_POINTS) ds.data.shift();
+        priceChart.update('none');
+
+        document.getElementById('current-price').textContent = fmt(price);
+        document.getElementById('stat-high').textContent = fmt(liveHigh);
+        document.getElementById('stat-low').textContent = fmt(liveLow);
+        document.getElementById('stat-candles').textContent = liveTicks.toLocaleString();
+        document.getElementById('stat-open').textContent = fmt(liveFirstPrice);
+
+        const pct = ((price - liveFirstPrice) / liveFirstPrice * 100).toFixed(2);
+        const el = document.getElementById('price-change');
+        el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+        el.className = pct >= 0 ? 'up' : 'down';
       };
 
-      ws.onclose = () => {
+      liveWs.onclose = () => {
         dot.classList.add('off');
-        statusEl.textContent = 'Deconnecte — reconnexion dans 3s...';
-        setTimeout(connect, 3000);
+        if (currentPeriod === 'live') {
+          statusEl.textContent = 'Deconnecte — reconnexion dans 3s...';
+          setTimeout(startLive, 3000);
+        }
       };
 
-      ws.onerror = () => {
-        ws.close();
-      };
+      liveWs.onerror = () => { liveWs.close(); };
     }
 
-    connect();
+    // ── Toolbar events ──────────────────────────────────────
+    document.getElementById('toolbar').addEventListener('click', (e) => {
+      const btn = e.target.closest('.period-btn');
+      if (!btn) return;
+      loadPeriod(btn.dataset.period);
+    });
+
+    // ── Init: load 1 month by default ───────────────────────
+    loadPeriod('1m');
   </script>
 </body>
 </html>
